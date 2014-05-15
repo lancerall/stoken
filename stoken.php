@@ -1,36 +1,54 @@
 <?php
-// Usage: stoken.php?username=lrall&token=abc12300000...
+// Usage: stoken.php?username=lrall&token=abc12300000&pin=123&debug
+
+$file_root = "/var/www/stoken/";
 
 $token = "";
 $username = "";
+$pin = "";
 
-if (isset($_GET["token"]) && !isset($_GET["username"])) die("Token was provided but username not present.");
-if (!isset($_GET["token"]) && isset($_GET["username"])) die("Username was provided but token not present.");
-if (isset($token) && isset($username)) {
+$debug = false;
+
+if (isset($_GET["debug"])) $debug=true;
+
+if ( isset($_GET["username"]) || isset($_GET["token"]) || isset($_GET["pin"]) )
+{
+	if (!isset($_GET["username"])) die("Username not present.");
+	if (!isset($_GET["token"])) die("Token not present.");
+	if (!isset($_GET["pin"])) die("Pin not present.");
+
 	$token = $_GET["token"];
 	$username = $_GET["username"];
+	$pin = $_GET["pin"];
+
+	if ($debug) echo "Token: $token<br />Username: $username<br />Pin: $pin<br />";
 }
 
-if ($token) $command = "stoken --token=".$token;
+if ($token) $command = "echo ".$pin." | stoken --token=".$token." --stdin";
 else $command = "stoken --rcfile=/var/www/.stokenrc";
+
+if ($debug) echo $command."<br />";
 
 $current_code = exec($command);
 
-if ($username) $file = '/var/www/'.$username.'.txt';
-else $file = '/var/www/lastRSA.txt';
+if (!$username) $username = "lastRSA";
+$file = $file_root.$username.'.txt';
+
+if ($debug) echo "File: $file<br />";
 
 if (file_exists($file)) $file_code = file_get_contents($file);
 else $file_code="";
 
-if (isset($_GET["debug"])) echo "current code: $current_code <br>\n file code: $file_code \n<br />";
-while($current_code == $file_code){
-	if (isset($_GET["debug"])) echo "<br>sleeping....\n<br />";
+if ($debug) echo "current code: ".md5($current_code)." <br>\n file code: $file_code \n<br />";
+while(md5($current_code) == $file_code){
+	if ($debug) echo "<br>sleeping....\n<br />";
 	sleep(2);
 	$current_code = exec($command);
 	$file_code = file_get_contents($file);
-	if (isset($_GET["debug"])) echo "current code: $current_code <br>\n file code: $file_code <br>\n";
+	if ($debug) echo "current code: ".md5($current_code)." <br>\n file code: $file_code <br>\n";
 }
-if (isset($_GET["debug"])) echo "<br>\nreturning a code: ";
-file_put_contents($file, $current_code);
+
+if ($debug) echo "<br>\nreturning a code: ";
+file_put_contents($file, md5($current_code));
 echo $current_code;
 ?>
