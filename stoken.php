@@ -2,6 +2,7 @@
 // Usage: stoken.php?username=lrall&token=abc12300000&pin=123&debug
 
 $file_root = "/var/www/stoken/";
+$default_tokenrc = "/var/www/.stokenrc";
 
 $token = "";
 $username = "";
@@ -25,7 +26,7 @@ if ( isset($_GET["username"]) || isset($_GET["token"]) || isset($_GET["pin"]) )
 }
 
 if ($token) $command = "echo ".$pin." | stoken --token=".$token." --stdin";
-else $command = "stoken --rcfile=/var/www/.stokenrc";
+else $command = "stoken --rcfile=".$default_tokenrc;
 
 if ($debug) echo $command."<br />";
 
@@ -40,6 +41,7 @@ if (file_exists($file)) $file_code = file_get_contents($file);
 else $file_code="";
 
 if ($debug) echo "current code: ".md5($current_code)." <br>\n file code: $file_code \n<br />";
+
 while(md5($current_code) == $file_code){
 	if ($debug) echo "<br>sleeping....\n<br />";
 	sleep(2);
@@ -48,7 +50,10 @@ while(md5($current_code) == $file_code){
 	if ($debug) echo "current code: ".md5($current_code)." <br>\n file code: $file_code <br>\n";
 }
 
-if ($debug) echo "<br>\nreturning a code: ";
 file_put_contents($file, md5($current_code));
+if ($debug) echo "Writing ".md5($current_code)." to ".$file."<br />\n";
+if ($debug) echo "returning a code: ";
+
 echo $current_code;
+
 ?>
