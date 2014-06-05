@@ -19,7 +19,7 @@ if ( isset($_GET["username"]) || isset($_GET["token"]) || isset($_GET["pin"]) )
 	if (!isset($_GET["pin"])) die("Pin not present.");
 	
 	if ($_GET["token"] == "null") die("Cannot accept null.");
-	if ($_GET["pin"] == "null") die("Cannot accept null.")
+	if ($_GET["pin"] == "null") die("Cannot accept null.");
 
 	$token = $_GET["token"];
 	$username = $_GET["username"];
