@@ -1,5 +1,10 @@
 <?php
 // Usage: stoken.php?username=lrall&token=abc12300000&pin=123&debug
+//  Returns : Next available token code
+//  Note : Page will not return a response until a valid token code is available
+// Usage: stoken.php?username=lrall&token=abc12300000&pin=123&check
+//  Returns : "AVAILABLE" or "UNAVAILABLE"
+//  Note : Page will respond immediately
 
 $file_root = "/var/www/stoken/";
 $default_tokenrc = "/var/www/.stokenrc";
@@ -9,15 +14,17 @@ $username = "";
 $pin = "";
 
 $debug = false;
+$checkOnly = false;
 
 if (isset($_GET["debug"])) $debug=true;
+if (isset($_GET["check"])) $checkOnly=true;
 
-if ( isset($_GET["username"]) || isset($_GET["token"]) || isset($_GET["pin"]) )
+if ( isset($_GET["username"]) || isset($_GET["token"]) || isset($_GET["pin"]) || $_GET["check"])
 {
 	if (!isset($_GET["username"])) die("Username not present.");
 	if (!isset($_GET["token"])) die("Token not present.");
 	if (!isset($_GET["pin"])) die("Pin not present.");
-	
+
 	if ($_GET["token"] == "null") die("Cannot accept null.");
 	if ($_GET["pin"] == "null") die("Cannot accept null.");
 
@@ -44,6 +51,10 @@ if (file_exists($file)) $file_code = file_get_contents($file);
 else $file_code="";
 
 if ($debug) echo "current code: ".md5($current_code)." <br>\n file code: $file_code \n<br />";
+if ($checkOnly) {
+	if (md5($current_code) == $file_code) die("UNAVAILABLE");
+	else die("AVAILABLE");
+}
 
 while(md5($current_code) == $file_code){
 	if ($debug) echo "<br>sleeping....\n<br />";
